@@ -1,0 +1,17 @@
+#Open header of a fits file
+from astropy.io import fits
+
+# Open the FITS file
+hdul = fits.open(fits_file)
+
+# Get the header
+header = hdul[0].header
+
+# Print the header
+print(header)
+
+# Access specific header keyword
+print(header['keyword'])
+
+# Close the FITS file
+hdul.close()

@@ -13,13 +13,25 @@ fits_count = 0
 png_count = 0
 xml_count = 0
 
+# Define directories to save files
+fits_dir = 'fits_files/'
+png_dir = 'png_files/'
+xml_dir = 'xml_files/'
+
+# Create directories if they don't exist
+os.makedirs(fits_dir, exist_ok=True)
+os.makedirs(png_dir, exist_ok=True)
+os.makedirs(xml_dir, exist_ok=True)
+
 # Function to download and process FITS files
 def process_fits(url):
     global fits_count
     full_url = base_url + url  # Construct the full URL
     response = requests.get(full_url)
     if response.status_code == 200:
+        filename = os.path.basename(url)
         with fits.open(BytesIO(response.content)) as hdul:
+            hdul.writeto(os.path.join(fits_dir, filename), overwrite=True)
             fits_count += 1
             print("Imported FITS file:", full_url)
     else:
@@ -31,9 +43,11 @@ def process_png(url):
     full_url = base_url + url  # Construct the full URL
     response = requests.get(full_url)
     if response.status_code == 200:
-        image = Image.open(BytesIO(response.content))
-        png_count += 1
-        print("Imported PNG file:", full_url)
+        filename = os.path.basename(url)
+        with open(os.path.join(png_dir, filename), 'wb') as file:
+            file.write(response.content)
+            png_count += 1
+            print("Imported PNG file:", full_url)
     else:
         print(f"Failed to download PNG file from {full_url}")
 
@@ -43,9 +57,11 @@ def process_xml(url):
     full_url = base_url + url  # Construct the full URL
     response = requests.get(full_url)
     if response.status_code == 200:
-        xml_root = ET.fromstring(response.content)
-        xml_count += 1
-        print("Imported XML file:", full_url)
+        filename = os.path.basename(url)
+        with open(os.path.join(xml_dir, filename), 'wb') as file:
+            file.write(response.content)
+            xml_count += 1
+            print("Imported XML file:", full_url)
     else:
         print(f"Failed to download XML file from {full_url}")
 

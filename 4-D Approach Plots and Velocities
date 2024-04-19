@@ -1,0 +1,162 @@
+import os
+from astropy.io import fits
+import numpy as np
+import matplotlib.pyplot as plt
+from datetime import datetime
+from mpl_toolkits.mplot3d import Axes3D
+
+# Directory containing FITS files
+directory = r'C:\Users\Nperr\Documents\Climate 405\nbody-python\fits_files\\'
+
+# Initialize lists to store parameter values
+rel_a_x_list = []
+rel_a_y_list = []
+rel_a_z_list = []
+rel_b_x_list = []
+rel_b_y_list = []
+rel_b_z_list = []
+unix_time_list = []
+
+# Iterate over each file in the directory
+for filename in os.listdir(directory):
+    if filename.endswith(".fits"):
+        # Open the FITS file
+        fits_file = os.path.join(directory, filename)
+        hdul = fits.open(fits_file)
+
+        # Extract data from the header
+        header = hdul[0].header
+
+        # Retrieve REL_A_X, REL_A_Y, and REL_A_Z values and convert them to floats
+        rel_a_x_str = header.get('REL_A_X', '')
+        rel_a_y_str = header.get('REL_A_Y', '')
+        rel_a_z_str = header.get('REL_A_Z', '')
+
+        # Retrieve REL_B_X, REL_B_Y, and REL_B_Z values and convert them to floats
+        rel_b_x_str = header.get('REL_B_X', '')
+        rel_b_y_str = header.get('REL_B_Y', '')
+        rel_b_z_str = header.get('REL_B_Z', '')
+
+        # Check if all values are non-empty
+        if rel_a_x_str and rel_a_y_str and rel_a_z_str and rel_b_x_str and rel_b_y_str and rel_b_z_str:
+            rel_a_x = float(rel_a_x_str)
+            rel_a_y = float(rel_a_y_str)
+            rel_a_z = float(rel_a_z_str)
+            rel_b_x = float(rel_b_x_str)
+            rel_b_y = float(rel_b_y_str)
+            rel_b_z = float(rel_b_z_str)
+
+            # Retrieve UTC time and convert it to Unix timestamp
+            utc_time_str = header.get('COR_UTC', '')
+            if utc_time_str:
+                utc_time = datetime.strptime(utc_time_str, '%Y-%m-%dT%H:%M:%S')
+                unix_time = utc_time.timestamp()
+                unix_time_list.append(unix_time)
+            else:
+                print("UTC time not found in file: {}".format(filename))
+                hdul.close()
+                continue
+
+            rel_a_x_list.append(rel_a_x)
+            rel_a_y_list.append(rel_a_y)
+            rel_a_z_list.append(rel_a_z)
+            rel_b_x_list.append(rel_b_x)
+            rel_b_y_list.append(rel_b_y)
+            rel_b_z_list.append(rel_b_z)
+        # Close the FITS file
+        hdul.close()
+
+# Check if any Unix time values were retrieved
+if unix_time_list:
+    # Create a scatter plot with color gradient based on Unix time for Didymos
+    fig1 = plt.figure(figsize=(10, 8))
+    ax1 = fig1.add_subplot(111, projection='3d')
+
+    # Normalize Unix time values to be between 0 and 1
+    norm1 = plt.Normalize(min(unix_time_list), max(unix_time_list))
+
+    # Plot scatter points with color gradient for Didymos
+    scatter1 = ax1.scatter(rel_a_x_list, rel_a_y_list, rel_a_z_list, c=unix_time_list, cmap='viridis', s=20, alpha=0.6, marker='o', norm=norm1)
+
+    # Add color bar for Didymos
+    cbar1 = fig1.colorbar(scatter1, ax=ax1)
+    cbar1.set_label('Unix Time')
+
+    # Set labels and title for Didymos
+    ax1.set_xlabel('Rel_A_X (Didymos)')
+    ax1.set_ylabel('Rel_A_Y (Didymos)')
+    ax1.set_zlabel('Rel_A_Z (Didymos)')
+    ax1.set_title('Didymos-DART Relative Distance')
+
+    plt.tight_layout()
+
+    # Create a scatter plot with color gradient based on Unix time for Dimorphos
+    fig2 = plt.figure(figsize=(10, 8))
+    ax2 = fig2.add_subplot(111, projection='3d')
+
+    # Normalize Unix time values to be between 0 and 1
+    norm2 = plt.Normalize(min(unix_time_list), max(unix_time_list))
+
+    # Plot scatter points with color gradient for Dimorphos
+    scatter2 = ax2.scatter(rel_b_x_list, rel_b_y_list, rel_b_z_list, c=unix_time_list, cmap='viridis', s=20, alpha=0.6, marker='o', norm=norm2)
+
+    # Add color bar for Dimorphos
+    cbar2 = fig2.colorbar(scatter2, ax=ax2)
+    cbar2.set_label('Unix Time')
+
+    # Set labels and title for Dimorphos
+    ax2.set_xlabel('Rel_B_X (Dimorphos)')
+    ax2.set_ylabel('Rel_B_Y (Dimorphos)')
+    ax2.set_zlabel('Rel_B_Z (Dimorphos)')
+    ax2.set_title('Dimorphos-DART Relative Distance')
+
+    plt.tight_layout()
+
+    plt.show()
+else:
+    print("No valid Unix time values found.")
+
+
+### VELOCITY PLOTS ###
+
+# Initialize lists to store velocities and time differences
+velocity_a_list = []
+velocity_b_list = []
+time_diff_list = []
+
+# Iterate over consecutive data points
+for i in range(1, len(unix_time_list)):
+    # Calculate velocity for object A
+    distance_a = np.sqrt((rel_a_x_list[i] - rel_a_x_list[i-1])**2 + (rel_a_y_list[i] - rel_a_y_list[i-1])**2 + (rel_a_z_list[i] - rel_a_z_list[i-1])**2)
+    time_diff_a = unix_time_list[i] - unix_time_list[i-1]
+    velocity_a = distance_a / time_diff_a
+    velocity_a_list.append(velocity_a)
+
+    # Calculate velocity for object B
+    distance_b = np.sqrt((rel_b_x_list[i] - rel_b_x_list[i-1])**2 + (rel_b_y_list[i] - rel_b_y_list[i-1])**2 + (rel_b_z_list[i] - rel_b_z_list[i-1])**2)
+    time_diff_b = unix_time_list[i] - unix_time_list[i-1]
+    velocity_b = distance_b / time_diff_b
+    velocity_b_list.append(velocity_b)
+
+    # Store time difference
+    time_diff_list.append(unix_time_list[i])
+
+# Plot velocity versus time for object A
+plt.figure(figsize=(10, 6))
+plt.plot(time_diff_list, velocity_a_list, color='blue', label='Object A')
+plt.xlabel('Unix Time')
+plt.ylabel('Velocity (m/s)')
+plt.title('Velocity Relative to Didymos over Time')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Plot velocity versus time for object B
+plt.figure(figsize=(10, 6))
+plt.plot(time_diff_list, velocity_b_list, color='green', label='Object B')
+plt.xlabel('Unix Time')
+plt.ylabel('Velocity (m/s)')
+plt.title('Velocity Relative to Dimorphos over Time')
+plt.legend()
+plt.grid(True)
+plt.show()

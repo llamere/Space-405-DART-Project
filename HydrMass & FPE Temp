@@ -1,0 +1,71 @@
+import os
+from astropy.io import fits
+import numpy as np
+import matplotlib.pyplot as plt
+from datetime import datetime
+from matplotlib.dates import DateFormatter, AutoDateLocator
+from matplotlib.ticker import MaxNLocator
+
+# Directory containing FITS files
+directory = r'C:\Users\Nperr\Documents\Climate 405\nbody-python\fits_files\\'
+
+# Initialize lists to store parameter values
+hydrmss_list = []
+fpe_temp_list = []
+coord_utc_list = []
+
+# Iterate over each file in the directory
+for filename in os.listdir(directory):
+    if filename.endswith(".fits"):
+        # Open the FITS file
+        fits_file = os.path.join(directory, filename)
+        hdul = fits.open(fits_file)
+
+        # Extract data from the header
+        header = hdul[0].header
+
+        # Append parameter values to the lists
+        hydrmss_list.append(header['HYDRMSS'])
+        fpe_temp_list.append(header['FPETEMP'])
+        
+        # Convert UTC time to Unix timestamp
+        utc_time = datetime.strptime(header['COR_UTC'], '%Y-%m-%dT%H:%M:%S')
+        coord_utc_list.append(utc_time.timestamp())
+
+        # Close the FITS file
+        hdul.close()
+
+# Reverse the lists to plot in increasing time order
+hydrmss_list.reverse()
+fpe_temp_list.reverse()
+coord_utc_list.reverse()
+
+### PLOT HYDR MASS VS TIME ###
+plt.figure(figsize=(10, 6))
+plt.plot(coord_utc_list, hydrmss_list, marker='o', linestyle='-', color='b')
+plt.title('Hydr Mass vs Time')
+plt.xlabel('Time (Unix Timestamp)')
+plt.ylabel('Hydr Mass')
+plt.grid(True)
+plt.xticks(rotation=45)
+
+# Limit the number of ticks on the y-axis
+plt.gca().yaxis.set_major_locator(plt.MaxNLocator(10))
+
+plt.tight_layout()
+plt.show()
+
+### PLOT FPE TEMP VS TIME ###
+plt.figure(figsize=(10, 6))
+plt.plot(coord_utc_list, fpe_temp_list, marker='o', linestyle='-', color='r')
+plt.title('FPE Temp vs Time')
+plt.xlabel('Time (Unix Timestamp)')
+plt.ylabel('FPE Temp')
+plt.grid(True)
+plt.xticks(rotation=45)
+
+# Limit the number of ticks on the y-axis
+plt.gca().yaxis.set_major_locator(plt.MaxNLocator(10))
+
+plt.tight_layout()
+plt.show()

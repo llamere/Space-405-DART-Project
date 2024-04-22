@@ -28,9 +28,9 @@ for filename in os.listdir(directory):
         hydrmss_list.append(header['HYDRMSS'])
         fpe_temp_list.append(header['FPETEMP'])
         
-        # Convert UTC time to Unix timestamp
+        # Convert UTC time to datetime object
         utc_time = datetime.strptime(header['COR_UTC'], '%Y-%m-%dT%H:%M:%S')
-        coord_utc_list.append(utc_time.timestamp())
+        coord_utc_list.append(utc_time)
 
         # Close the FITS file
         hdul.close()
@@ -40,12 +40,27 @@ hydrmss_list.reverse()
 fpe_temp_list.reverse()
 coord_utc_list.reverse()
 
+# Convert each string to a floating-point number and format it to three decimal places
+for i in range(len(hydrmss_list)):
+    # Check if the string is not empty
+    if hydrmss_list[i]:
+        # Convert string to float
+        value_as_float = float(hydrmss_list[i])
+        # Format float to three decimal places
+        formatted_value = "{:.3f}".format(value_as_float)
+        # Update the list with the formatted value
+        hydrmss_list[i] = formatted_value
+    else:
+        # If the string is empty, set the formatted value as an empty string
+        hydrmss_list[i] = ''
+
+
 ### PLOT HYDR MASS VS TIME ###
 plt.figure(figsize=(10, 6))
 plt.plot(coord_utc_list, hydrmss_list, marker='o', linestyle='-', color='b')
 plt.title('Hydr Mass vs Time')
-plt.xlabel('Time (Unix Timestamp)')
-plt.ylabel('Hydr Mass')
+plt.xlabel('Time (UTC)')
+plt.ylabel('Hydr Mass (kg)')
 plt.grid(True)
 plt.xticks(rotation=45)
 

@@ -1,17 +1,21 @@
-#Open header of a fits file
+# Open header of a fits file
 from astropy.io import fits
 
 # Open the FITS file
+directory = r'C:\Users\Nperr\Documents\Climate 405\nbody-python\fits_files\\'
+
+# Concatenate the directory path with the file name
+fits_file = directory + 'dart_0401929788_46871_02_iof.fits'  # Include the file extension
+
 hdul = fits.open(fits_file)
 
 # Get the header
 header = hdul[0].header
 
-# Print the header
-print(header)
-
-# Access specific header keyword
-print(header['keyword'])
+# Print the header in a well-formatted list
+print("FITS Header:")
+for key, value in header.items():
+    print(f"{key}: {value}")
 
 # Close the FITS file
 hdul.close()

@@ -145,8 +145,8 @@ for i in range(1, len(unix_time_list)):
 plt.figure(figsize=(10, 6))
 plt.plot(time_diff_list, velocity_a_list, color='blue', label='Object A')
 plt.xlabel('Unix Time')
-plt.ylabel('Velocity (m/s)')
-plt.title('Velocity Relative to Didymos over Time')
+plt.ylabel('Velocity (km/s)')
+plt.title('Velocity Relative to Didymos over Time - September 26th, 2022')
 plt.legend()
 plt.grid(True)
 plt.show()
@@ -155,8 +155,52 @@ plt.show()
 plt.figure(figsize=(10, 6))
 plt.plot(time_diff_list, velocity_b_list, color='green', label='Object B')
 plt.xlabel('Unix Time')
-plt.ylabel('Velocity (m/s)')
-plt.title('Velocity Relative to Dimorphos over Time')
+plt.ylabel('Velocity (km/s)')
+plt.title('Velocity Relative to Dimorphos over Time - September 26th, 2022')
 plt.legend()
 plt.grid(True)
 plt.show()
+
+import numpy as np
+
+# Initialize lists to store velocities for both references and time differences
+velocity_a_list = []
+velocity_b_list = []
+time_diff_list = []
+
+# Iterate over consecutive data points
+for i in range(1, len(unix_time_list)):
+    # Calculate velocity for object A
+    distance_a = np.sqrt((rel_a_x_list[i] - rel_a_x_list[i-1])**2 + (rel_a_y_list[i] - rel_a_y_list[i-1])**2 + (rel_a_z_list[i] - rel_a_z_list[i-1])**2)
+    time_diff_a = unix_time_list[i] - unix_time_list[i-1]
+    
+    # Check if time difference is not zero to avoid division by zero
+    if time_diff_a != 0:
+        velocity_a = distance_a / time_diff_a
+        velocity_a_list.append(velocity_a)
+
+    # Calculate velocity for object B
+    distance_b = np.sqrt((rel_b_x_list[i] - rel_b_x_list[i-1])**2 + (rel_b_y_list[i] - rel_b_y_list[i-1])**2 + (rel_b_z_list[i] - rel_b_z_list[i-1])**2)
+    time_diff_b = unix_time_list[i] - unix_time_list[i-1]
+    
+    # Check if time difference is not zero to avoid division by zero
+    if time_diff_b != 0:
+        velocity_b = distance_b / time_diff_b
+        velocity_b_list.append(velocity_b)
+
+    # Store time difference
+    time_diff_list.append(unix_time_list[i])
+
+# Calculate the average velocity for reference A
+if velocity_a_list:
+    average_velocity_a = np.mean(velocity_a_list)
+    print("Average velocity for reference A:", average_velocity_a)
+else:
+    print("No valid velocities for reference A.")
+
+# Calculate the average velocity for reference B
+if velocity_b_list:
+    average_velocity_b = np.mean(velocity_b_list)
+    print("Average velocity for reference B:", average_velocity_b)
+else:
+    print("No valid velocities for reference B.")
